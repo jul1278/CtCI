@@ -19,6 +19,10 @@ struct BinaryNode {
     }
 };
 
+enum TupleId { NODE = 0, LEFT_VISITED = 1, RIGHT_VISITED = 2 };
+
+typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState; 
+
 //--------------------------------------------------------------------------------------------------------------
 // Name: BinaryInsert 
 // Desc: insert into binary tree, not recursive, but unfortunately does allocate on the stack.  
@@ -66,12 +70,6 @@ void BinaryInsert(int value, BinaryNode& node) {
 //---------------------------------------------------------------------------------------
 void VisitInOrder(BinaryNode& rootNode, unsigned int size = 0) {
 
-    // improvements
-    // - dont cout in function, build a string
-    // 
-
-typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState; 
-
     // depends on implementation but std::get accessing tuples slower than accessing a member of a struct
     // use a vector instead of a stack so we only call new when we need to resize
     // remember to think about how STL containers actually work internally, when might they be calling new?
@@ -89,10 +87,13 @@ typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState;
 
         // capture the tuple by reference!!
         auto& stackTop = nodes.back(); 
-        auto currentNode = std::get<0>(stackTop);
+        auto currentNode = std::get<NODE>(stackTop);
 
-        auto leftVisited = std::get<1>(stackTop);
-        auto rightVisited = std::get<2>(stackTop); 
+        auto leftVisited = std::get<LEFT_VISITED>(stackTop);
+        auto rightVisited = std::get<RIGHT_VISITED>(stackTop); 
+
+        if (!currentNode->right) {std::get<RIGHT_VISITED>(stackTop) = true;}
+        if (!currentNode->left) {std::get<LEFT_VISITED>(stackTop) = true;}
 
         // node has no children
         if (!currentNode->left && !currentNode->right) {
@@ -103,16 +104,17 @@ typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState;
                 if (!rightVisited) {
                     // vist right node
                     auto nextNode = currentNode->right; 
-                    std::get<2>(stackTop) = true;
-                    nodes.push_back(TraversalFrameState(nextNode, false, false)); 
-
+                    std::get<RIGHT_VISITED>(stackTop) = true;
+                    
+                    if (nextNode->HasChildren()) {
+                        nodes.push_back(TraversalFrameState(nextNode, false, false)); 
+                    } else {
+                        std::cout << nextNode->value << " "; 
+                    }
+                    
                     continue; 
                 } 
-            } else {
-                // theres nothing here so we'll say it's visited
-                std::get<2>(stackTop) = true;
-            }
-    
+            } 
             // we've visted right and NOT left
             if (rightVisited && !leftVisited) {
                 // visit the current node
@@ -123,15 +125,17 @@ typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState;
                 if (!leftVisited) {
                     // visit left node
                     auto nextNode = currentNode->left; 
-                    std::get<1>(stackTop) = true; 
+                    std::get<LEFT_VISITED>(stackTop) = true; 
                     
-                    nodes.push_back(TraversalFrameState(nextNode, false, false));
+                    if (nextNode->HasChildren()) {
+                        nodes.push_back(TraversalFrameState(nextNode, false, false)); 
+                    } else {
+                        std::cout << nextNode->value << " "; 
+                    }
+                    
                     continue; 
                 }
-            } else {
-                // nothing here so we'll say it's visited
-                std::get<1>(stackTop) = true; 
-            }
+            } 
 
             if (leftVisited && rightVisited) {
                 nodes.pop_back(); 
@@ -149,8 +153,6 @@ typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState;
 //----------------------------------------------------------------------------------------------------------------
 void PreOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
 
-    typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState; 
-
     // depends on implementation but std::get accessing tuples slower than accessing a member of a struct
     // use a vector instead of a stack so we only call new when we need to resize
     std::vector<TraversalFrameState> nodes;
@@ -165,9 +167,9 @@ void PreOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
         // capture the tuple by reference!!
         auto& stackTop = nodes.back(); 
 
-        auto currentNode = std::get<0>(stackTop);
-        auto leftVisited = std::get<1>(stackTop);
-        auto rightVisited = std::get<2>(stackTop); 
+        auto currentNode = std::get<NODE>(stackTop);
+        auto leftVisited = std::get<LEFT_VISITED>(stackTop);
+        auto rightVisited = std::get<RIGHT_VISITED>(stackTop); 
 
         // visit the node straight away
         if (!leftVisited) { std::cout << currentNode->value << " "; }
@@ -180,22 +182,34 @@ void PreOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
             if (!leftVisited) {
                 if (currentNode->left) {
                     auto nextNode = currentNode->left; 
-                    std::get<1>(stackTop) = true; 
-                    nodes.push_back(TraversalFrameState(nextNode, false, false)); 
+                    std::get<LEFT_VISITED>(stackTop) = true; 
+                    
+                    if (nextNode->HasChildren()) {
+                        nodes.push_back(TraversalFrameState(nextNode, false, false)); 
+                    } else {
+                        std::cout << nextNode->value << " ";
+                    }
+
                 } else {
-                    std::get<1>(stackTop) = true; 
+                    std::get<LEFT_VISITED>(stackTop) = true; 
                 }
 
             } else if (!rightVisited) {
                 if (currentNode->right) {
                     auto nextNode = currentNode->right; 
-                    std::get<2>(stackTop) = true; 
-                    nodes.push_back(TraversalFrameState(nextNode, false, false)); 
+                    std::get<RIGHT_VISITED>(stackTop) = true; 
+                    
+                    if (nextNode->HasChildren()) {
+                        nodes.push_back(TraversalFrameState(nextNode, false, false)); 
+                    } else {
+                        std::cout << nextNode->value << " ";
+                    }
+
                 } else {
-                    std::get<2>(stackTop) = true; 
+                    std::get<RIGHT_VISITED>(stackTop) = true; 
                 }
 
-                std::get<2>(stackTop) = true; 
+                std::get<RIGHT_VISITED>(stackTop) = true; 
             }
 
             if (leftVisited && rightVisited) {
@@ -214,8 +228,6 @@ void PreOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
 //----------------------------------------------------------------------------------------------------------------
 void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
 
-    typedef std::tuple<BinaryNode*, bool, bool> TraversalFrameState; 
-
     // depends on implementation but std::get accessing tuples slower than accessing a member of a struct
     // use a vector instead of a stack so we only call new when we need to resize
     std::vector<TraversalFrameState> nodes;
@@ -230,18 +242,17 @@ void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
         // capture the tuple by reference!!
         auto& stackTop = nodes.back(); 
 
-        auto currentNode = std::get<0>(stackTop);
-        auto leftVisited = std::get<1>(stackTop);
-        auto rightVisited = std::get<2>(stackTop); 
+        auto currentNode = std::get<NODE>(stackTop);
+        auto leftVisited = std::get<LEFT_VISITED>(stackTop);
+        auto rightVisited = std::get<RIGHT_VISITED>(stackTop); 
 
-        // fr v *curre
         if (!currentNode->left && !currentNode->right) { 
             std::cout << currentNode->value << " ";
-            nodes.pop_back(); 
-        
-        } else {    
-            if (!currentNode->left) { std::get<1>(stackTop) = true; }
-            if (!currentNode->right) { std::get<2>(stackTop) = true; }
+            nodes.pop_back();     
+        } else {
+
+            if (!currentNode->left) { std::get<LEFT_VISITED>(stackTop) = true; }
+            if (!currentNode->right) { std::get<RIGHT_VISITED>(stackTop) = true; }
 
             // visit left
             // neither left or right visited
@@ -282,11 +293,19 @@ void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
     std::cout << "\n"; 
 }
 
+//-------------------------------------------------------------------------------- 
+// Name: BalanceBinaryTree
+// Desc: 
+//--------------------------------------------------------------------------------
 void BalanceBinaryTree(BinaryNode& rootNode) {
-
+    // make a list of all the values O(n)
+    // sort the list O(n log n)
+    // find the middle value O(1)
+    // build tree O(n log n)
 }
 
 bool IsBalanced(BinaryNode& rootNode) {
+    // both sub trees have +-1 nodes???
     return false; 
 }
 
@@ -299,9 +318,14 @@ bool IsFull(BinaryNode& rootNode) {
 }
 
 bool IsPerfect(BinaryNode& rootNode) {
+    // both subtrees have same number of nodes and levels
     return false;
 }
 
+//-------------------------------------------------------------------------------- 
+// Name:
+// Desc: 
+//--------------------------------------------------------------------------------
 int main() {
     BinaryNode node {10, nullptr, nullptr}; 
 
