@@ -1,4 +1,4 @@
-// TreesAndGraphs.cpp
+// Trees.cpp
 #include <memory>
 #include <iostream>
 #include <stack>
@@ -11,7 +11,7 @@ struct BinaryNode {
     BinaryNode* left;
     BinaryNode* right;
 
-    bool HasChildren() { return this->left || this->right;}
+    bool HasChildren() { return this->left || this->right; }
 
     ~BinaryNode() {
         delete left;
@@ -258,7 +258,7 @@ void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
             // neither left or right visited
             if (!rightVisited && !leftVisited && currentNode->left) {
                 auto nextNode = currentNode->left; 
-                std::get<1>(stackTop) = true; 
+                std::get<LEFT_VISITED>(stackTop) = true; 
 
                 // look ahead here and dont bother pushing on the vector if node has no children
                 if (nextNode->HasChildren()) {
@@ -272,7 +272,7 @@ void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
             // left and not right 
             else if (leftVisited && !rightVisited && currentNode->right) { // visit right
                 auto nextNode = currentNode->right; 
-                std::get<2>(stackTop) = true; 
+                std::get<RIGHT_VISITED>(stackTop) = true; 
 
                 // look ahead here and dont bother pushing on the vector if node has no children
                 if (nextNode->HasChildren()) {
