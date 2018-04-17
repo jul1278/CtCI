@@ -140,7 +140,7 @@ void DepthFirstSearch(const Graph& graph) {
 // Given a directed graph, design and algorithm to find out whether there is a route between two nodes
 //
 bool RouteBetweenNodes(Graph& graph, const Node* node1, const Node* node2) {
-    
+    return BreadthFirstSearch(graph, node1, node2);
 }
 
 //------------------------------------------------------------------------------------

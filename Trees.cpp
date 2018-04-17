@@ -293,6 +293,36 @@ void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
     std::cout << "\n"; 
 }
 
+// 4.2 
+// Given a sorted (increasing order) array with unique integer elements, write an algorithm 
+// to create a binary search tree with minimal height. 
+//
+//
+//
+/*
+
+5 numbers
+1, 2, 3, 5, 6
+
+5
+2
+1
+
+i
+*/
+
+void MinimalTreeRecursive(BinaryNode& binaryNode, uint32_t* array, uint32_t arrayLen) {
+    auto middleIndex = arrayLen / 2; 
+    binaryNode.value = array[middleIndex]; 
+
+    if (middleIndex > 0) {
+        binaryNode.left = new BinaryNode();
+        binaryNode.right = new BinaryNode(); 
+        MinimalTreeRecursive(*binaryNode.left, array, middleIndex - 1); 
+        MinimalTreeRecursive(*binaryNode.right, array + middleIndex + 1, middleIndex + 1); 
+    }
+} 
+
 //-------------------------------------------------------------------------------- 
 // Name: BalanceBinaryTree
 // Desc: 
@@ -353,6 +383,11 @@ int main() {
 
     // 4 9 8 15 12 10
     PostOrderVisit(node);
+
+
+    uint32_t array[] = {1, 2, 3, 5, 6}; 
+    BinaryNode root; 
+    MinimalTreeRecursive(root, array, 5); 
 
     return 0; 
 }
