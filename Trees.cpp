@@ -300,26 +300,89 @@ void PostOrderVisit(BinaryNode& rootNode, unsigned int size = 0) {
 //
 //
 /*
+/*
 
-5 numbers
-1, 2, 3, 5, 6
+{2, 4, 6, 8, 10, 20}
 
-5
-2
-1
+            8
+          /   \
+        4      10
+      /  \       \
+     2    6       20
 
-i
-*/
+
+            6
+           / \
+          4   10
+         /    / \
+        2    8   20
+
+
+first call
+array: 2,4,6,8,10,20 arrayLen: 6 
+middleIndex = 3
+node value = 8
+
+second call left:
+array: 2,4,6 arraylen = 3
+middleIndex = 1
+node value = 4
+     
+    third call left:
+    array: 2, arrayLen = 1
+
+    third call right: 
+    array: 6, arrayLen = 1
+
+second call right
+array: 8, 10, 20 arrayLen = 3
+middleIndex = 1
+node value = 10
+
+*/  
+
+// {2, 4, 6, 8, 10, 20}; 
+
+// {10, 20}
 
 void MinimalTreeRecursive(BinaryNode& binaryNode, uint32_t* array, uint32_t arrayLen) {
-    auto middleIndex = arrayLen / 2; 
-    binaryNode.value = array[middleIndex]; 
+    auto middleIndex = arrayLen / 2;  // NOTE: should we be doing (arrayLen - 1)/2 ???? 
 
-    if (middleIndex > 0) {
+    if (arrayLen <= 1) { return; }
+
+    if (middleIndex > 1) {
+
+        binaryNode.value = array[middleIndex];
+
         binaryNode.left = new BinaryNode();
         binaryNode.right = new BinaryNode(); 
-        MinimalTreeRecursive(*binaryNode.left, array, middleIndex - 1); 
-        MinimalTreeRecursive(*binaryNode.right, array + middleIndex + 1, middleIndex + 1); 
+        MinimalTreeRecursive(*binaryNode.left, array, middleIndex); 
+
+        uint32_t subArrayLen = arrayLen - middleIndex - 1; 
+
+        MinimalTreeRecursive(*binaryNode.right, array + middleIndex + 1, subArrayLen); // middleIndex /* - 1 */);
+
+    } else {
+
+        if (arrayLen == 3) {
+
+            binaryNode.value = array[middleIndex];
+
+            binaryNode.right = new BinaryNode(); 
+            binaryNode.right->value = array[arrayLen - 1]; 
+
+            binaryNode.left = new BinaryNode(); 
+            binaryNode.left->value = *array; 
+
+            //std::cout << binaryNode.left->value << " " << binaryNode.value << " " << binaryNode.right->value << "\n";
+             
+        } else if (arrayLen == 2) {
+
+            binaryNode.value = *array;
+
+            binaryNode.right = new BinaryNode();
+            binaryNode.right->value = array[arrayLen - 1];            
+        }
     }
 } 
 
@@ -357,37 +420,60 @@ bool IsPerfect(BinaryNode& rootNode) {
 // Desc: 
 //--------------------------------------------------------------------------------
 int main() {
-    BinaryNode node {10, nullptr, nullptr}; 
+    // BinaryNode node {10, nullptr, nullptr}; 
 
-    BinaryInsert(12, node); 
-    BinaryInsert(15, node); 
-    BinaryInsert(8, node); 
-    BinaryInsert(9, node); 
-    BinaryInsert(4, node); 
+    // BinaryInsert(12, node); 
+    // BinaryInsert(15, node); 
+    // BinaryInsert(8, node); 
+    // BinaryInsert(9, node); 
+    // BinaryInsert(4, node); 
 
-    // tree should look like
+    // // tree should look like
+    // /*
+    //          10
+    //         /  \
+    //       8      12
+    //     /  \       \
+    //    4    9       15
+
+    // */
+
+    // // 15 12 10 9 8 4
+    // VisitInOrder(node); 
+
+    // // 10 8 4 9 12 15
+    // PreOrderVisit(node);
+
+    // // 4 9 8 15 12 10
+    // PostOrderVisit(node);
+
     /*
-             10
-            /  \
-          8      12
-        /  \       \
-       4    9       15
-
+            8
+          /   \
+        4      10
+      /  \       \
+     2    6       20
     */
-
-    // 15 12 10 9 8 4
-    VisitInOrder(node); 
-
-    // 10 8 4 9 12 15
-    PreOrderVisit(node);
-
-    // 4 9 8 15 12 10
-    PostOrderVisit(node);
-
-
-    uint32_t array[] = {1, 2, 3, 5, 6}; 
+    uint32_t array[] = {2, 4, 6, 8, 10, 20}; 
     BinaryNode root; 
-    MinimalTreeRecursive(root, array, 5); 
+    MinimalTreeRecursive(root, array, 6); 
+
+    VisitInOrder(root); 
+    PreOrderVisit(root); 
+    PostOrderVisit(root); 
+
+    /*
+        8
+       / \   
+      4   20
+     / \
+    2   6
+    */   
+    // uint32_t array2[] = {2, 4, 6, 8, 20}; 
+    // BinaryNode root2; 
+    // MinimalTreeRecursive(root2, array2, 5); 
+
+    // VisitInOrder(root2); 
 
     return 0; 
 }
