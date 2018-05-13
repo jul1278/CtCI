@@ -5,6 +5,7 @@
 #include <tuple>
 #include <vector>
 #include <list>
+#include <math.h>
 
 struct BinaryNode {
     int value;
@@ -395,6 +396,7 @@ void MinimalTreeRecursive(BinaryNode& binaryNode, uint32_t* array, uint32_t arra
 
 // 4.3 List Of Depths
 // Given a binary tree, design an algorithm which creates a linked list of all the nodes at each depth 
+// this one returns a vector but its pretty simple to use a linked list instead
 std::vector<const BinaryNode*> ListOfDepth(const BinaryNode& tree, const unsigned int depth) {
     
     std::vector<const BinaryNode*> nodesAtDepth; 
@@ -453,33 +455,90 @@ std::vector<const BinaryNode*> ListOfDepth(const BinaryNode& tree, const unsigne
     return nodesAtDepth; 
 }
 
-//-------------------------------------------------------------------------------- 
-// Name: BalanceBinaryTree
+//---------------------------------------------------------------------------------
+// Name: Depth
 // Desc: 
-//--------------------------------------------------------------------------------
-void BalanceBinaryTree(BinaryNode& rootNode) {
-    // make a list of all the values O(n)
-    // sort the list O(n log n)
-    // find the middle value O(1)
-    // build tree O(n log n)
+//---------------------------------------------------------------------------------
+unsigned int Depth(const BinaryNode& parent) {
+    
+    std::vector<DepthTraversalFrameState> nodes;
+    unsigned int depth = 0;
+
+    nodes.push_back(DepthTraversalFrameState(&parent, false, false, 0)); 
+
+    // get node off stack
+    // push left and right child on stack and increment left depth counter
+    // compare depth counters to largest seen depth counters
+    // pop stack if node has no children
+    // when stack is empty compare left and right counters
+
+    while(!nodes.empty()) {
+
+        auto& frame = nodes.back(); 
+        auto currentNode = std::get<NODE>(frame); 
+        auto currentDepth = std::get<DEPTH>(frame); 
+        auto& leftVisited = std::get<LEFT_VISITED>(frame);
+        auto& rightVisited = std::get<RIGHT_VISITED>(frame); 
+
+        //std::cout << currentDepth << " "; 
+        
+        if (currentDepth > depth) {
+            depth = currentDepth; 
+        }
+
+        if ( (!currentNode->left && !currentNode->right) 
+            || (leftVisited && rightVisited)) {
+            nodes.pop_back(); 
+        } else {
+
+            if (!currentNode->left) {
+                //std::cout << "L "; 
+                std::get<LEFT_VISITED>(frame) = true; 
+            } 
+
+            if (!currentNode->right) {
+                //std::cout << "R "; 
+                std::get<RIGHT_VISITED>(frame) = true;
+            }
+
+            if (!leftVisited) {
+                std::get<LEFT_VISITED>(frame) = true; 
+                // DEBUG
+                //std::cout << "push back left "; 
+                nodes.push_back(DepthTraversalFrameState(currentNode->left, false, false, currentDepth + 1)); 
+            } 
+            else if (!rightVisited) {
+                std::get<RIGHT_VISITED>(frame) = true; 
+                // DEBUG
+                //std::cout << "push back right "; 
+                nodes.push_back(DepthTraversalFrameState(currentNode->right, false, false, currentDepth + 1));
+            }
+        }
+    }
+
+    return depth;
 }
 
+// 4.4 Check Balanced
+// Implement a function to check if a binary tree is balanced 
+// For the purposes of this question, a balanced tree is considered
+// to be a binary tree such that the heights of the two subtrees of any node 
+// never differ by more than one
+//
 bool IsBalanced(BinaryNode& rootNode) {
-    // both sub trees have +-1 nodes???
-    return false; 
-}
 
-bool IsComplete(BinaryNode& rootNode) {
-    return false; 
-}
+    int leftDepth = 0; 
+    int rightDepth = 0;  
 
-bool IsFull(BinaryNode& rootNode) {
-    return false; 
-}
+    if (rootNode.left) {
+        leftDepth = Depth(*rootNode.left);
+    }
 
-bool IsPerfect(BinaryNode& rootNode) {
-    // both subtrees have same number of nodes and levels
-    return false;
+    if (rootNode.right) {
+        rightDepth = Depth(*rootNode.right);
+    }
+
+    return (abs(leftDepth - rightDepth) <= 1); 
 }
 
 //-------------------------------------------------------------------------------- 
@@ -536,31 +595,39 @@ int main() {
      / \
     2   6
     */   
+
+      
+
     uint32_t array2[] = {2, 4, 6, 8, 20}; 
     BinaryNode root2; 
     MinimalTreeRecursive(root2, array2, 5); 
 
-    // VisitInOrder(root2); 
-    // PreOrderVisit(root2);  // 4 2 8 6 20
-    // PostOrderVisit(root2); 
+    // // VisitInOrder(root2); 
+    // // PreOrderVisit(root2);  // 4 2 8 6 20
+    // // PostOrderVisit(root2); 
 
-    // std::cout << root2.value << "\n";
-    // std::cout << root2.left->value << "\n"; 
-    // std::cout << root2.right->value << "\n"; 
+    // // std::cout << root2.value << "\n";
+    // // std::cout << root2.left->value << "\n"; 
+    // // std::cout << root2.right->value << "\n"; 
 
-    /*
-       6
-     /   \
-    2     8
-     \      \
-      4      20
-    */
+    // /*
+    //    6
+    //  /   \
+    // 2     8
+    //  \      \
+    //   4      20
+    // */
+    
+    std::cout << IsBalanced(root2); 
 
-    auto nodesAtDepth = ListOfDepth(root2, 2); 
 
-    for (auto node : nodesAtDepth) {
-        std::cout << node->value << " "; 
-    }
+    // auto nodesAtDepth = ListOfDepth(root2, 2); 
+
+    // for (auto node : nodesAtDepth) {
+    //     std::cout << node->value << " "; 
+    // }
+
+
 
     std::cout << "\n";
 
