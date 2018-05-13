@@ -395,50 +395,59 @@ void MinimalTreeRecursive(BinaryNode& binaryNode, uint32_t* array, uint32_t arra
 
 // 4.3 List Of Depths
 // Given a binary tree, design an algorithm which creates a linked list of all the nodes at each depth 
-std::vector<BinaryNode*> ListOfDepth(const BinaryNode& tree, const unsigned int depth) {
+std::vector<const BinaryNode*> ListOfDepth(const BinaryNode& tree, const unsigned int depth) {
     
-    std::vector<BinaryNode*> nodesAtDepth; 
+    std::vector<const BinaryNode*> nodesAtDepth; 
     std::vector<DepthTraversalFrameState> nodes;
-
     unsigned int currentDepth = 0; 
-    const BinaryNode* currentNode = tree; 
 
     nodes.push_back(DepthTraversalFrameState(&tree, false, false, currentDepth)); 
 
     while (!nodes.empty()) {
         // get the top
+        auto& frameState = nodes.back(); 
 
-        auto frameState = nodes.back(); 
-
-        currentNode = std::get<NODE>(frameState);
+        auto currentNode = std::get<NODE>(frameState);
         auto leftVisited = std::get<LEFT_VISITED>(frameState); 
         auto rightVisited = std::get<RIGHT_VISITED>(frameState); 
         auto currentDepth = std::get<DEPTH>(frameState); 
 
-        if (leftVisited && rightVisited || (!currentNode->left && !currentNode->right)) {
+        // DEBUG
+        // std::cout << currentNode->value << " " << currentDepth << " " << leftVisited << " " << rightVisited << " "; 
+
+        if ( (leftVisited && rightVisited) || (currentDepth > depth)) {
             nodes.pop_back();
+            // DEBUG
+            // std::cout << "pop"; 
         } else {
             if (currentDepth == depth) {
+                // DEBUG
+                // std::cout << "added node"; 
                 nodesAtDepth.push_back(currentNode); 
-
-            } else {
-                if (!leftVisited) {
-                    if (currentNode->left) {
-                        nodes.push_back(DepthTraversalFrameState(currentNode->left, false, false, currentDepth + 1)); 
-                    } 
-
-                    leftVisited = true; 
+                nodes.pop_back(); 
+            } else if (currentDepth < depth) {
+                
+                if (!currentNode->left && !currentNode->right) {
+                    nodes.pop_back(); 
                 }
 
-                if (!rightVisited) {
+                if (!leftVisited) {
+                    std::get<LEFT_VISITED>(frameState) = true;
+                    if (currentNode->left) { 
+                        nodes.push_back(DepthTraversalFrameState(currentNode->left, false, false, currentDepth + 1)); 
+                    }                      
+                }
+                else if (!rightVisited) {
+                    std::get<RIGHT_VISITED>(frameState) = true; 
                     if (currentNode->right) {
                         nodes.push_back(DepthTraversalFrameState(currentNode->right, false, false, currentDepth + 1));
                     }
-
-                    rightVisited = true; 
                 }
             } 
         }
+
+        // DEBUG to 'step through'
+        // std::cin.get(); 
     }
 
     return nodesAtDepth; 
@@ -478,47 +487,47 @@ bool IsPerfect(BinaryNode& rootNode) {
 // Desc: 
 //--------------------------------------------------------------------------------
 int main() {
-    BinaryNode node {10, nullptr, nullptr}; 
+    // BinaryNode node {10, nullptr, nullptr}; 
 
-    BinaryInsert(12, node); 
-    BinaryInsert(15, node); 
-    BinaryInsert(8, node); 
-    BinaryInsert(9, node); 
-    BinaryInsert(4, node); 
+    // BinaryInsert(12, node); 
+    // BinaryInsert(15, node); 
+    // BinaryInsert(8, node); 
+    // BinaryInsert(9, node); 
+    // BinaryInsert(4, node); 
 
-    // tree should look like
-    /*
-             10
-            /  \
-          8      12
-        /  \       \
-       4    9       15
+    // // tree should look like
+    // /*
+    //          10
+    //         /  \
+    //       8      12
+    //     /  \       \
+    //    4    9       15
 
-    */
+    // */
 
-    // 15 12 10 9 8 4
-    VisitInOrder(node); 
+    // // 15 12 10 9 8 4
+    // VisitInOrder(node); 
 
-    // 10 8 4 9 12 15
-    PreOrderVisit(node);
+    // // 10 8 4 9 12 15
+    // PreOrderVisit(node);
 
-    // 4 9 8 15 12 10
-    PostOrderVisit(node);
+    // // 4 9 8 15 12 10
+    // PostOrderVisit(node);
 
-    /*
-            8
-          /   \
-        4      10
-      /  \       \
-     2    6       20
-    */
-    uint32_t array[] = {2, 4, 6, 8, 10, 20}; 
-    BinaryNode root; 
-    MinimalTreeRecursive(root, array, 6); 
+    // /*
+    //         8
+    //       /   \
+    //     4      10
+    //   /  \       \
+    //  2    6       20
+    // */
+    // uint32_t array[] = {2, 4, 6, 8, 10, 20}; 
+    // BinaryNode root; 
+    // MinimalTreeRecursive(root, array, 6); 
 
-    VisitInOrder(root); 
-    PreOrderVisit(root); 
-    PostOrderVisit(root); 
+    // VisitInOrder(root); 
+    // PreOrderVisit(root); 
+    // PostOrderVisit(root); 
 
     /*
         8
@@ -531,9 +540,29 @@ int main() {
     BinaryNode root2; 
     MinimalTreeRecursive(root2, array2, 5); 
 
-    VisitInOrder(root2); 
-    PreOrderVisit(root2);  // 4 2 8 6 20
-    PostOrderVisit(root2); 
+    // VisitInOrder(root2); 
+    // PreOrderVisit(root2);  // 4 2 8 6 20
+    // PostOrderVisit(root2); 
+
+    // std::cout << root2.value << "\n";
+    // std::cout << root2.left->value << "\n"; 
+    // std::cout << root2.right->value << "\n"; 
+
+    /*
+       6
+     /   \
+    2     8
+     \      \
+      4      20
+    */
+
+    auto nodesAtDepth = ListOfDepth(root2, 2); 
+
+    for (auto node : nodesAtDepth) {
+        std::cout << node->value << " "; 
+    }
+
+    std::cout << "\n";
 
     return 0; 
 }
