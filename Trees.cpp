@@ -7,6 +7,7 @@
 #include <list>
 #include <math.h>
 
+// BinaryNode
 struct BinaryNode {
     int value;
 
@@ -16,6 +17,23 @@ struct BinaryNode {
     bool HasChildren() { return this->left || this->right; }
 
     ~BinaryNode() {
+        delete left;
+        delete right; 
+    }
+};
+
+// BinaryChildNode
+struct BinaryChildNode {
+    BinaryChildNode* parent;  
+
+    int value;
+
+    BinaryChildNode* left;
+    BinaryChildNode* right;
+
+    bool HasChildren() { return this->left || this->right; }
+
+    ~BinaryChildNode() {
         delete left;
         delete right; 
     }
