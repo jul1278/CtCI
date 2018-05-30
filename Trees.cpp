@@ -541,6 +541,94 @@ bool IsBalanced(BinaryNode& rootNode) {
     return (abs(leftDepth - rightDepth) <= 1); 
 }
 
+// Is a valid binary search tree? 
+// all nodes to the left <= n and all nodes to the right are > 
+bool IsBST_Rec(const BinaryNode& root) {
+    
+    auto result = true; 
+    
+    if (root.left != nullptr && root.left->value <= root.value) {
+        result |= IsBST_Rec(root); 
+    }
+
+    if (root.right != nullptr && root.right->value > root.value) {
+        result |= IsBST_Rec(root); 
+    }
+
+    return result; 
+}
+
+
+// Is a valid binary search tree? 
+// all nodes to the left <= n and all nodes to the right are > 
+bool IsValidBST(const BinaryNode& root) {
+
+    typedef std::tuple<const BinaryNode*, bool, bool> stackFrame; 
+
+    std::vector<stackFrame> stack; 
+
+    stack.push_back(stackFrame(&root, false, false));
+
+    while (!stack.empty()) {
+        auto currentNode = std::get<0>(stack.back()); 
+        auto& leftVisited = std::get<1>(stack.back()); 
+        auto& rightVisited = std::get<2>(stack.back()); 
+
+        // DEBUG
+        //std::cout << currentNode->value << std::endl; 
+
+        if (!leftVisited) {
+            if (currentNode->left != nullptr){
+                
+                if(currentNode->left->value <= currentNode->value) {
+                    std::get<1>(stack.back()) = true; 
+                    stack.push_back(stackFrame(currentNode->left, false, false));
+                } else {
+
+                    return false; 
+                }
+            } else {
+
+                leftVisited = true; 
+            }
+        }
+        else if (!rightVisited) {
+            if (currentNode->right != nullptr) {
+                if (currentNode->right->value > currentNode->value) {
+                    std::get<2>(stack.back()) = true; 
+                    stack.push_back(stackFrame(currentNode->right, false, false));           
+                }
+            } else {
+
+                rightVisited = true; 
+            }
+        }
+        else if (rightVisited && leftVisited) 
+        {
+            stack.pop_back(); 
+        }
+    }
+
+    return true; 
+
+    // while stack in not empty 
+    // {
+    //  if left node not visited    
+    //      check left node value less than or equal to current node value
+    //          push left node on stack                
+    //      else 
+    //          return false 
+    //
+    //  if right node not visited
+    //      check right node value greater than current node value
+    //          push right node on stack
+    //      else
+    //          return false 
+    //
+    //  if left and right are visited then pop
+    // }
+}
+
 //-------------------------------------------------------------------------------- 
 // Name:
 // Desc: 
@@ -630,6 +718,7 @@ int main() {
 
 
     std::cout << "\n";
+    std::cout << "Is valid BST: " << IsValidBST(root2) << "\n"; 
 
     return 0; 
 }
