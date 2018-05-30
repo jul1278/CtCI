@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <vector>
+#include <unordered_map>
 #include <iterator>
 
 // Print pyramid numbers
@@ -133,6 +135,55 @@ void PrintPyramid3(unsigned int width) {
     }
 }
 
+//
+//
+//
+//
+std::string LongestSubstring(const std::string& strA, const std::string& strB) {
+    std::unordered_map<char, std::vector<unsigned int>> characterMap; 
+
+    for (auto i = 0; i < strB.length(); i++) {
+        auto c = strB[i]; 
+        characterMap[c].push_back(i); 
+    }
+
+    auto startIndex = 0;
+    auto longestSubStringLen = 0;
+
+    for (auto j = 0; j < strA.length(); j++) {
+        auto c = strA[j]; 
+
+        // debug
+        // std::cout << c << ": "; 
+
+        // find c in our hashmap
+        if (characterMap.find(c) != characterMap.end()) {
+            
+            auto indices = characterMap[c]; 
+            for (auto i : indices) {
+                // debug
+                // std::cout << i << " ";
+                auto currentSubStringLength = 0;        
+                for (auto k = 0; (k + j) < strA.length() && (k + i) < strB.length(); k++) {
+
+                    if (strA[j + k] == strB[i + k]) {
+                        currentSubStringLength++; 
+                        
+                        if (currentSubStringLength > longestSubStringLen) {
+                            longestSubStringLen = currentSubStringLength; 
+                            startIndex = j; 
+                        }
+                    } else {
+                        break; 
+                    }
+                }
+            }
+        }
+    }
+
+    return strA.substr(startIndex, longestSubStringLen); 
+}
+
 //------------------------------------------------------------------------------------------------------------
 // Name: main
 //------------------------------------------------------------------------------------------------------------
@@ -145,6 +196,16 @@ int main() {
 
     std::cout << "PrintPyramid3\n";
     PrintPyramid3(4);
+
+    std::cout << "LongestSubstring\n"; 
+    std::cout << "abc dbc\n";
+    std::cout << LongestSubstring("abc", "dbc") << "\n"; 
+
+    std::cout << "function fun\n"; 
+    std::cout << LongestSubstring("function", "fun") << "\n"; 
+
+    std::cout << "abcdefghijkl dfsdfdcvdfdefghsdasr\n"; 
+    std::cout << LongestSubstring("abcdefghijkl", "dfsdfdcvdfdefghsdasr") << "\n"; 
 
     return 0; 
 }

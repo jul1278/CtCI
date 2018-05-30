@@ -558,7 +558,6 @@ bool IsBST_Rec(const BinaryNode& root) {
     return result; 
 }
 
-
 // Is a valid binary search tree? 
 // all nodes to the left <= n and all nodes to the right are > 
 bool IsValidBST(const BinaryNode& root) {
