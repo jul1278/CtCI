@@ -646,6 +646,76 @@ bool IsValidBST(const BinaryNode& root) {
     // }
 }
 
+// Successor
+// return the leftmost node of the righhand subtree
+BinaryChildNode& Successor(BinaryChildNode& node) {
+
+    // if node has no right child
+    //   return parent
+
+    if (node.right == nullptr) {
+        return *node.parent; 
+    }
+
+    while (node.left != nullptr) {
+        node = *node.left;
+    }
+
+    return node; 
+
+    // loop
+    // if node has left child 
+    //      node = left child
+    // else
+    //      return node
+}
+
+void PrintTree(BinaryNode& root) {
+
+    unsigned int minNodeSeparation = 3; 
+    auto depth = 6;//Depth(root); 
+
+    auto bottomWidth = (unsigned int) std::ceil(std::pow(2, depth)) * minNodeSeparation; 
+
+    // make bottomWidth even
+    if ((bottomWidth % 2) == 1) {
+        bottomWidth++; 
+    }
+
+    std::list<unsigned int> queue; 
+    queue.push_back(0); 
+
+    for (auto l = 0; l < depth; l++) {
+        std::list<unsigned int> nextQueue;
+        nextQueue.push_back(0);
+        
+        auto sep = (unsigned int) pow(2, l + 1); 
+        auto next = 0; 
+
+        for (auto i = 0; i < bottomWidth; i++) {
+            auto f = (bottomWidth/sep); 
+            if ((queue.front() + f) == i && !queue.empty()) {
+                queue.pop_front(); 
+                std::cout << "N"; 
+
+                nextQueue.push_back(i); 
+
+            } else {
+                std::cout << " "; 
+            }
+        }
+
+        std::cout << "\n"; 
+
+        // TODO: fix this
+        // have pointers to queues and swap them 
+        queue.clear();
+        for(auto n : nextQueue) {
+            queue.push_back(n); 
+        }
+    }
+}
+
 //-------------------------------------------------------------------------------- 
 // Name:
 // Desc: 
@@ -736,6 +806,9 @@ int main() {
 
     std::cout << "\n";
     std::cout << "Is valid BST: " << IsValidBST(root2) << "\n"; 
+    
+    std::cout << "\n";
+    PrintTree(root2); 
 
     return 0; 
 }
