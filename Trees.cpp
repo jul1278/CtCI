@@ -6,6 +6,7 @@
 #include <vector>
 #include <list>
 #include <math.h>
+#include <cmath>
 
 // BinaryNode
 struct BinaryNode {
@@ -670,6 +671,9 @@ BinaryChildNode& Successor(BinaryChildNode& node) {
     //      return node
 }
 
+
+// PrintTree
+//
 void PrintTree(BinaryNode& root) {
 
     unsigned int minNodeSeparation = 3; 
@@ -712,6 +716,77 @@ void PrintTree(BinaryNode& root) {
         queue.clear();
         for(auto n : nextQueue) {
             queue.push_back(n); 
+        }
+    }
+}
+
+
+void PrintTree2(BinaryNode& root) {
+    unsigned int minNodeSeparation = 3; 
+    auto depth = 4;//Depth(root); 
+
+    auto bottomWidth = (unsigned int) std::ceil(std::pow(2, depth)) * minNodeSeparation; 
+
+    // make bottomWidth even
+    if ((bottomWidth % 2) == 1) {
+        bottomWidth++; 
+    }
+
+    std::list<int> points; 
+    std::list<BinaryNode*> nodes; 
+
+    auto currentSeparation = bottomWidth / 2;
+    points.push_back(currentSeparation); 
+
+    nodes.push_back(&root); 
+
+    for (auto l = 0; l < depth; l++) {
+
+        std::list<int> nextPoints; 
+        std::list<BinaryNode*> nextNodes; 
+
+        for (auto i = 0; i < bottomWidth; i++) {
+            if (i == points.front()) {
+
+                auto node = nodes.front(); 
+                
+                if (node != nullptr) {
+                    std::cout << std::to_string(node->value);    
+
+                    nextNodes.push_front(nodes.front()->left);
+                    nextNodes.push_front(nodes.front()->right);
+
+                } else {
+                    std::cout << " "; // actually print the value at nodes.front()
+
+                    nextNodes.push_front(nullptr);
+                    nextNodes.push_front(nullptr);
+                }
+                
+                points.pop_front(); 
+                
+                nextPoints.push_back(i - (currentSeparation / 2));
+                nextPoints.push_back(i + (currentSeparation / 2)); 
+
+                nodes.pop_front(); 
+                
+            } else {
+                std::cout << " "; 
+            }
+        }
+
+        currentSeparation = currentSeparation / 2;
+
+        std::cout << "\n"; 
+        
+        points.clear(); 
+        
+        for (auto n : nextPoints) {
+            points.push_back(n); 
+        }
+
+        for (auto n : nextNodes) {
+            nodes.push_front(n);
         }
     }
 }
@@ -808,7 +883,7 @@ int main() {
     std::cout << "Is valid BST: " << IsValidBST(root2) << "\n"; 
     
     std::cout << "\n";
-    PrintTree(root2); 
+    PrintTree2(root2); 
 
     return 0; 
 }
