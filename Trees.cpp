@@ -5,6 +5,8 @@
 #include <tuple>
 #include <vector>
 #include <list>
+#include <unordered_map>
+#include <unordered_set>
 #include <math.h>
 #include <cmath>
 
@@ -671,6 +673,154 @@ BinaryChildNode& Successor(BinaryChildNode& node) {
     //      return node
 }
 
+// 4.7 Build Order
+// You are given a list of projects and a list of dependencies (which is a list of pairs of projects where the second project is dependent on the first project).
+// All the projects dependencies must be built before the project is. Find a build order that will allow the projects to be built, if there is no valid build order
+// return an error.
+void BuildOrder() {
+    // Example
+    //
+    // projects: a, b, c, d, e, f
+    // dependencies: (a,d), (f,b, (b,d), (f,a), (d,c)
+
+    // output: f, e, a, b, d, c
+
+    std::list<std::string> projects = {"a", "b", "c", "d", "e", "f"};
+
+    std::list<std::tuple<std::string, std::string>> dependencies = 
+    {
+        std::tuple<std::string, std::string>("a", "d"),
+        std::tuple<std::string, std::string>("f", "b"),
+        std::tuple<std::string, std::string>("b", "d"),
+        std::tuple<std::string, std::string>("f", "a"),
+        std::tuple<std::string, std::string>("d", "c")
+    }; 
+
+    // build a map "name"-> project
+    
+    // first need to find a project that has no dependencies and other projects depend on it
+    //
+    // everything in the dependencies pairs list either depends on something or is depended upon 
+    //
+    // map string -> int 
+    // count the number of dependencies each project has
+    // project with zero dependencies is where we can start
+
+    std::unordered_set<std::string> projectSet;
+
+    // Project -> who is directly dependent on me
+    std::unordered_map<std::string, std::vector<std::string>> dependencyMap; 
+    
+    // Projects which are dependent on another project
+    std::unordered_set<std::string> dependencyCounter; 
+
+    for (auto pair : dependencies) {
+        auto a = std::get<0>(pair); 
+        auto b = std::get<1>(pair); 
+
+        dependencyMap[a].push_back(b);  
+        dependencyCounter.insert(b);
+
+        projectSet.insert(a); 
+        projectSet.insert(b); 
+    }
+
+    std::string startDependency = ""; 
+
+    for (auto pair : dependencies) {
+        auto project = std::get<0>(pair); 
+
+        if (dependencyCounter.find(project) == dependencyCounter.end()) {
+            startDependency = project;
+            break; 
+        }
+    }
+
+    // DEBUG
+    // for(auto pair : dependencyMap) {
+    //     auto project = std::get<0>(pair);
+    //     auto dependencies = std::get<1>(pair); 
+
+    //     std::cout << project.c_str() << ": "; 
+    //     for(auto dependency : dependencies) {
+    //         std::cout << dependency.c_str() << ", "; 
+    //     }
+
+    //     std::cout << "\n"; 
+    // }
+
+    if (startDependency == "") {
+        std::cout << "Error!";
+        return; 
+    }
+    
+    std::vector<std::string> buildOrder; 
+
+    // Assuming we found a project that isnt dependent on anything where other projects are dependent on it... 
+    std::cout << "Build order: "; 
+
+    // first build all the projects with no dependencies/depended upon
+    for (auto project : projects) {
+        if (projectSet.find(project) == projectSet.end()) {
+            // std::cout << project.c_str() << ", "; 
+            buildOrder.push_back(project); 
+        }
+    }
+
+    // stack
+    // push most depenent project on the stack
+    
+    std::unordered_set<std::string> visitedProjects; 
+    std::list<std::string> stack; 
+    stack.push_back(startDependency); 
+
+    while(!stack.empty()) {
+
+        auto project = stack.back(); 
+        stack.pop_back();
+
+        if (visitedProjects.find(project) == visitedProjects.end()) {
+            //std::cout << project.c_str() << ", "; 
+            buildOrder.push_back(project); 
+            
+            visitedProjects.insert(project); 
+            auto result = dependencyMap.find(project); 
+
+            if (result != dependencyMap.end()) {
+                auto dependencies = dependencyMap[project]; 
+                for(auto dependency : dependencies) {
+                    if (visitedProjects.find(dependency) != visitedProjects.end()) {
+                        // Error Stop
+                        std::cout << "Error! "; 
+                        return; 
+
+                    } else {
+
+                        stack.push_front(dependency); 
+                    }
+                }
+            }
+            
+        }
+
+        // get top project off the stack
+        // if not in visited hashset
+        //  print
+        //  if any of my dependencies are in visited hashset
+        //      error
+        //  else
+        //      push in visited hashset
+    }
+
+    for(auto i = 0; i < buildOrder.size();  i++) {
+        
+        std::cout << buildOrder[i].c_str();
+
+        if (i < buildOrder.size() - 1) {
+            std::cout << ", "; 
+        }      
+    }
+} 
 
 // PrintTree
 //
@@ -722,7 +872,7 @@ void PrintTree(BinaryNode& root) {
 
 
 void PrintTree2(BinaryNode& root) {
-    unsigned int minNodeSeparation = 3; 
+    unsigned int minNodeSeparation = 2; 
     auto depth = 4;//Depth(root); 
 
     auto bottomWidth = (unsigned int) std::ceil(std::pow(2, depth)) * minNodeSeparation; 
@@ -743,19 +893,48 @@ void PrintTree2(BinaryNode& root) {
     for (auto l = 0; l < depth; l++) {
 
         std::list<int> nextPoints; 
+        std::list<std::tuple<int, bool>> linkPoints; 
         std::list<BinaryNode*> nextNodes; 
+
+        // DEBUG
+        // for(auto n : points) {
+        //     std::cout << n << " "; 
+        // }
+
+        // std::cout << "\n"; 
+
+        auto accumulator = 0; 
 
         for (auto i = 0; i < bottomWidth; i++) {
             if (i == points.front()) {
 
                 auto node = nodes.front(); 
+                auto offset = 0;
                 
                 if (node != nullptr) {
-                    std::cout << std::to_string(node->value);    
-
+                    auto str = std::to_string(node->value);  
+                    
+                    std::cout << str;   
                     nextNodes.push_front(nodes.front()->left);
-                    nextNodes.push_front(nodes.front()->right);
 
+                    if (str.size() > 1) {
+                        // DEBUG
+                        // std::cout << "c"; 
+                        offset += str.size() - 1; 
+                    }
+
+                    if (nodes.front()->left != nullptr) {
+                        auto num = offset + i - (currentSeparation / 4); 
+                        linkPoints.push_back(std::tuple<int, bool>(num, true));
+                    }
+
+                    nextNodes.push_front(nodes.front()->right);
+                    
+                    if (nodes.front()->right != nullptr) {
+                        auto num = offset + i + (currentSeparation / 4); 
+                        linkPoints.push_back(std::tuple<int, bool>(num, false));
+                    }
+                    
                 } else {
                     std::cout << " "; // actually print the value at nodes.front()
 
@@ -765,8 +944,8 @@ void PrintTree2(BinaryNode& root) {
                 
                 points.pop_front(); 
                 
-                nextPoints.push_back(i - (currentSeparation / 2));
-                nextPoints.push_back(i + (currentSeparation / 2)); 
+                nextPoints.push_back(offset + i - (currentSeparation / 2));
+                nextPoints.push_back(offset + i + (currentSeparation / 2)); 
 
                 nodes.pop_front(); 
                 
@@ -774,6 +953,40 @@ void PrintTree2(BinaryNode& root) {
                 std::cout << " "; 
             }
         }
+
+        std::cout << "\n";
+
+        // // debug
+        // for (auto& pair : linkPoints) {
+        //     auto n = std::get<0>(pair); 
+        //     std::cout << n << " "; 
+        // }
+
+        // std::cout << "\n"; 
+        
+        for (auto i = 0; i < bottomWidth; i++) {
+            auto front = linkPoints.front(); 
+            auto num = std::get<0>(front); 
+            auto left = std::get<1>(front); 
+
+            if (num == i) {
+                
+                if (left) {
+                    std::cout << "/";
+                    left = false;
+                } else {
+                    std::cout << "\\";
+                    left = true; 
+                }
+                
+                linkPoints.pop_front(); 
+            } else {
+                std::cout << " "; 
+            }
+
+        }
+
+        linkPoints.clear(); 
 
         currentSeparation = currentSeparation / 2;
 
@@ -796,21 +1009,21 @@ void PrintTree2(BinaryNode& root) {
 // Desc: 
 //--------------------------------------------------------------------------------
 int main() {
-    // BinaryNode node {10, nullptr, nullptr}; 
+    BinaryNode node {10, nullptr, nullptr}; 
 
-    // BinaryInsert(12, node); 
-    // BinaryInsert(15, node); 
-    // BinaryInsert(8, node); 
-    // BinaryInsert(9, node); 
-    // BinaryInsert(4, node); 
+    BinaryInsert(12, node); 
+    BinaryInsert(15, node); 
+    BinaryInsert(8, node); 
+    BinaryInsert(9, node); 
+    BinaryInsert(4, node); 
 
-    // // tree should look like
-    // /*
-    //          10
-    //         /  \
-    //       8      12
-    //     /  \       \
-    //    4    9       15
+    // tree should look like
+    /*
+             10
+            /  \
+          8      12
+        /  \       \
+       4    9       15
 
     // */
 
@@ -848,9 +1061,10 @@ int main() {
 
       
 
-    uint32_t array2[] = {2, 4, 6, 8, 20}; 
+    //uint32_t array2[] = {2, 4, 6, 8, 20}; 
+    uint32_t array2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; 
     BinaryNode root2; 
-    MinimalTreeRecursive(root2, array2, 5); 
+    MinimalTreeRecursive(root2, array2, 15); 
 
     // // VisitInOrder(root2); 
     // // PreOrderVisit(root2);  // 4 2 8 6 20
@@ -884,6 +1098,14 @@ int main() {
     
     std::cout << "\n";
     PrintTree2(root2); 
+
+    std::cout << "\n";
+
+    PrintTree2(node); 
+
+    std::cout << "\n";
+
+    BuildOrder(); 
 
     return 0; 
 }
