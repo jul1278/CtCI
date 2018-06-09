@@ -35,7 +35,7 @@ struct BinaryChildNode {
     BinaryChildNode* right;
 
     bool HasChildren() { return this->left || this->right; }
-
+    
     ~BinaryChildNode() {
         delete left;
         delete right; 
@@ -822,6 +822,128 @@ void BuildOrder() {
     }
 } 
 
+// 4.8 First Common Ancestor
+// Design an algorithm and write code to find the first common ancestor of two nodes
+// in a binary search tree. Avoid storing additional nodes in a data structure
+// NOTE: this is not neccessarily a binary search tree
+//
+//
+//         5
+//     4      3
+//   2   1   6  7
+//                8
+//
+//
+//
+BinaryChildNode& FirstCommonAncestor(BinaryChildNode& nodeA, BinaryChildNode& nodeB) {
+
+    // starting from nodeB and nodeB walk both up the tree until we find the root node of the tree. 
+
+    // store the root node
+
+    // start from nodeA and nodeB walk up the tree until both 'walkers' reach a child of the stored node
+    // if both walkers have reach the same child 
+    //      store child node and repeat
+    // else 
+    //      stored node is the most common ancestor
+
+    BinaryChildNode* storedNode = nullptr; 
+    BinaryChildNode* walkerA = &nodeA;
+    BinaryChildNode* walkerB = &nodeB;
+    
+    while (walkerA->parent != nullptr) {
+        walkerA = walkerA->parent;
+    }
+
+    storedNode = walkerA;
+
+    walkerA = &nodeA;
+    walkerB = &nodeB;
+
+    bool foundCommonNode = false; 
+
+    // DEBUG
+    if (storedNode != nullptr) {
+        std::cout << "Found topmost parent node: " << storedNode->value << "\n";
+    }
+
+    std::cout << "Node A: " << walkerA->value << "\n";
+    std::cout << "Node B: " << walkerB->value << "\n";
+
+    // DEBUG
+    // return *storedNode;
+
+    // NOTE: ideally should walk B back up to the root to in order to prove they both actually do share common ancestors
+
+    while (!foundCommonNode) {
+        bool walkerAStop = false; 
+        bool walkerBStop = false; 
+
+        // DEBUG
+        // std::cout << "Walking\n";
+
+        // walk 
+        while (!walkerAStop && !walkerBStop) {
+            
+            // DEBUG
+            // std::cout << "...\n";
+
+            if (!walkerAStop) {
+                if ( (storedNode->left != nullptr && storedNode->left == walkerA) 
+                || (storedNode->right != nullptr && storedNode->right == walkerA)) {
+                    walkerAStop = true; 
+                } else {
+                    
+                    if (walkerA->parent != nullptr) {
+                        std::cout << "A: " << walkerA->value << " -> ";  
+                        walkerA = walkerA->parent; 
+                        std::cout << walkerA->value << "\n"; 
+                    } else {
+                        walkerAStop = true; 
+                    }
+                } 
+            }
+            
+            if (!walkerBStop) {
+                if ( (storedNode->left != nullptr && storedNode->left == walkerB) 
+                || (storedNode->right != nullptr && storedNode->right == walkerB)) {
+                    walkerBStop = true; 
+                } else {
+
+                    if (walkerB->parent != nullptr) {
+
+                        std::cout << "B: " << walkerB->value << " -> ";  
+                        walkerB = walkerB->parent; 
+                        std::cout << walkerB->value << "\n"; 
+                    } else {
+                        walkerBStop = true; 
+                    }
+                }
+            }
+
+            //std::cout << "\n";
+        }
+
+        // if the nodes are the same then we need to iterate again
+        if (walkerA == walkerB) {
+            storedNode = walkerA; 
+
+            walkerA = &nodeA; 
+            walkerB = &nodeB; 
+
+        } else {
+            foundCommonNode = true; 
+        }
+    }    
+
+    // DEBUG
+    if (storedNode != nullptr) {
+        std::cout << "Found lowest common ancestor node: " << storedNode->value << "\n";
+    }
+
+    return *storedNode; 
+}
+
 // PrintTree
 //
 void PrintTree(BinaryNode& root) {
@@ -1105,7 +1227,60 @@ int main() {
 
     std::cout << "\n";
 
-    BuildOrder(); 
+    // Build a tree lol
+    // Parent, Value, Left, Right
+    //
+    //         5
+    //     4      3
+    //   2   1   6  7
+    //                8
+
+    BinaryChildNode node1; node1.value = 1;
+    BinaryChildNode node2; node2.value = 2;
+    BinaryChildNode node3; node3.value = 3;
+    BinaryChildNode node4; node4.value = 4;
+    BinaryChildNode node5; node5.value = 5;  
+    BinaryChildNode node6; node6.value = 6;
+    BinaryChildNode node7; node7.value = 7;
+    BinaryChildNode node8; node8.value = 8;
+
+    node8.parent = &node7; 
+    node8.left = nullptr;
+    node8.right = nullptr; 
+
+    node7.parent = &node3;
+    node7.right = &node8;
+    node7.left = nullptr; 
+
+    node6.parent = &node3; 
+    node6.left = nullptr;
+    node6.right = nullptr;
+    
+    node3.left = &node6; 
+    node3.right = &node7; 
+    node3.parent = &node5; 
+    
+    node4.parent = &node5; 
+    node4.left = &node2; 
+    node4.right = &node1; 
+    
+    node5.right = &node3; 
+    node5.left = &node4; 
+    node5.parent = nullptr; 
+    
+    node2.parent = &node4; 
+    node2.left = nullptr; 
+    node2.right = nullptr; 
+
+    node1.parent = &node4; 
+    node1.left = nullptr; 
+    node1.right = nullptr; 
+
+    FirstCommonAncestor(node8, node1); 
+
+    std::cout << "\nDone!"; 
+
+    // BuildOrder(); 
 
     return 0; 
 }
