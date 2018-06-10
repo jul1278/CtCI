@@ -7,6 +7,7 @@
 #include <list>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 #include <math.h>
 #include <cmath>
 
@@ -920,8 +921,6 @@ BinaryChildNode& FirstCommonAncestor(BinaryChildNode& nodeA, BinaryChildNode& no
                     }
                 }
             }
-
-            //std::cout << "\n";
         }
 
         // if the nodes are the same then we need to iterate again
@@ -943,6 +942,220 @@ BinaryChildNode& FirstCommonAncestor(BinaryChildNode& nodeA, BinaryChildNode& no
 
     return *storedNode; 
 }
+
+// 4.9 
+// A binary search tree was created by traversing through an array from left to right and inserting each element
+// Given a BST with distinct elements, print all possible arrays that could have led to this tree. 
+// 
+// Example 
+//
+//   2
+// 1   3
+//
+// Answer: {2, 1, 3}, {2, 3, 1}
+
+/*
+
+------ EXAMPLE 1 ------ 
+
+Sequences(node 2, [[]])
+
+    make list [[2]]
+
+    IF LEFT NODE
+        call Sequences(node 2 left, [[2]])
+
+            return [[2, 1]]
+
+        then call with return 
+
+        call Sequences(node 2 right, [[2, 1]])
+
+            return [[2, 1, 3]]
+
+
+    IF RIGHT NODE
+
+        call Sequences(node 2 right, [[2]])
+            return [[2, 3]]
+
+        then call with return Sequences(node 2 left, [[2, 3]])
+
+            return [[2, 3, 1]]
+
+
+    
+    combine results
+
+    return [[2, 3, 1], [2, 1, 3]]
+
+------ EXAMPLE 2 ------
+
+        4 
+  2          6
+1   3      5   7
+
+return [[current node, left node permutations, right node permutations], [current node, right node permutations, left node permutations]]
+
+    [[4, left node permutations, right node permutations], [4, right node permutations, left node permutations]]
+
+    right node permutations = [[6, left node perm., right node perm.], [6, right node perm., left node perm.]]
+        left node perm. = [[5]]
+        right node perm. = [[7], [7]]
+
+        result = [[6, 5, 7], [6, 7, 5]]
+
+    left node permutations = [[2, left node permutations, right node permutations], [2, right node permutations, left node permutations]]
+        left node perm. = [[1]]
+        right node perm. = [[3]]
+
+        result = [[2, 1, 3], [2, 3, 1]]
+
+        foreach(leftPermutation) {
+            foreach(rightPermutation) {
+                add to list [4, left perm. , right perm]
+            }
+        }
+
+        foreach(rightPermutation) {
+            foreach(leftPermutation) {
+                add to list [4, right perm. , left perm]
+            }
+        }
+
+        [
+            [4, left node perm1, right node perm 1],
+            [4, left node perm2, right node perm 1],
+            [4, left node perm1, right node perm 2],
+            [4, left node perm2, right node perm 2],
+
+            [4, right node perm1, left node perm 1],
+            [4, right node perm2, left node perm 1],
+            [4, right node perm1, left node perm 2],
+            [4, right node perm2, left node perm 2],
+        ]
+*/
+
+std::list<std::list<int>> Sequences(const BinaryNode& node, std::list<std::list<int>> sequences) {
+    
+    if (sequences.empty()) {
+        std::list<int> lst; 
+        lst.push_back(node.value); 
+        sequences.push_back(lst); 
+    } else {
+        for(auto& lst : sequences) {
+            lst.push_back(node.value); 
+        }
+    }
+
+    // // DEBUG
+    // for(auto& lst : sequences) {
+    //     std::for_each(lst.begin(), lst.end(), [] (int a) {std::cout << a << " "; }); 
+    //     std::cout << "\n"; 
+    // }
+
+    std::list<std::list<int>> leftNodeSequences;
+    std::list<std::list<int>> rightNodeSequences; 
+
+    if (node.left != nullptr) {
+        leftNodeSequences = Sequences(*node.left, sequences);
+
+        // DEBUG
+        for(auto& lst : leftNodeSequences) {
+            std::for_each(lst.begin(), lst.end(), [] (int a) {std::cout << a << " "; }); 
+            std::cout << "\n"; 
+        }
+    } 
+
+    if (node.right != nullptr) {
+        rightNodeSequences = Sequences(*node.right, sequences);
+
+        // DEBUG
+        for(auto& lst : rightNodeSequences) {
+            std::for_each(lst.begin(), lst.end(), [] (int a) {std::cout << a << " "; }); 
+            std::cout << "\n"; 
+        }
+    }
+    
+    // std::cout << leftNodeSequences.size() << " " << rightNodeSequences.size() << "\n";
+
+    std::list<std::list<int>> result;
+
+    for (auto& seq : sequences) {
+        
+        if (leftNodeSequences.empty()) {
+            std::list<int> lst
+            // lst.push_back(); 
+        } else {
+            for (auto& leftSeq : leftNodeSequences) {
+                
+                for(auto& rightSeq : rightNodeSequences) {
+                    std::list<int> lst;
+                    auto func = [&lst](int a) { lst.push_back(a); }; 
+
+                    std::for_each(seq.begin(), seq.end(), func); 
+                    std::for_each(leftSeq.begin(), leftSeq.end(), func); 
+                    std::for_each(rightSeq.begin(), rightSeq.end(), func); 
+                    
+                    result.push_back(lst); 
+                }    
+            }
+        }
+        
+
+    
+        for (auto& leftSeq : leftNodeSequences) {
+            for(auto& rightSeq : rightNodeSequences) {
+                std::list<int> lst;
+                
+                auto func = [&lst](int a) { lst.push_back(a); }; 
+
+                std::for_each(seq.begin(), seq.end(), func); 
+                std::for_each(leftSeq.begin(), leftSeq.end(), func); 
+                std::for_each(rightSeq.begin(), rightSeq.end(), func); 
+                
+                result.push_back(lst); 
+            }
+        }
+    }
+
+    return result; 
+}
+
+std::list<std::list<int>> Sequences(const BinaryNode& node) {
+    
+    std::list<std::list<int>> emptyList; 
+    return Sequences(node, emptyList); 
+}
+
+void BSTSequences() {
+    BinaryNode node1;
+    BinaryNode node2;
+    BinaryNode node3;
+
+    node1.value = 1;
+    node2.value = 2;
+    node3.value = 3; 
+
+    node2.left = &node1;
+    node2.right = &node3;
+
+    node1.left = nullptr;
+    node1.right = nullptr;
+    node3.left = nullptr;
+    node3.right = nullptr; 
+
+    auto result = Sequences(node2); 
+
+    for(auto& list : result) {
+        for(auto& l : list) {
+            std::cout << l << ", "; 
+        }
+
+        std::cout << "\n";
+    }
+}
+
 
 // PrintTree
 //
@@ -991,7 +1204,6 @@ void PrintTree(BinaryNode& root) {
         }
     }
 }
-
 
 void PrintTree2(BinaryNode& root) {
     unsigned int minNodeSeparation = 2; 
@@ -1278,9 +1490,15 @@ int main() {
 
     FirstCommonAncestor(node8, node1); 
 
+    std::cout << "\n";
+
+    BSTSequences(); 
+    
     std::cout << "\nDone!"; 
 
     // BuildOrder(); 
+
+
 
     return 0; 
 }
