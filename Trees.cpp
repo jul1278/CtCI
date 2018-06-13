@@ -18,7 +18,7 @@ struct BinaryNode {
     BinaryNode* left;
     BinaryNode* right;
 
-    bool HasChildren() { return this->left || this->right; }
+    bool HasChildren() const { return this->left || this->right; }
 
     ~BinaryNode() {
         delete left;
@@ -954,46 +954,145 @@ BinaryChildNode& FirstCommonAncestor(BinaryChildNode& nodeA, BinaryChildNode& no
 //
 // Answer: {2, 1, 3}, {2, 3, 1}
 
+
+// NOTE: not tested very and recursive so not a very good solution
+// come back and do a non-recursive solution
+std::list<std::list<int>> Sequences(const BinaryNode& node) {
+    std::list<std::list<int>> resultList; 
+
+    if (!node.HasChildren()) {
+        std::list<int> lst; 
+        lst.push_back(node.value); 
+        resultList.push_back(lst); 
+
+        return resultList; 
+    }
+
+    std::list<std::list<int>> leftSeq; 
+    std::list<std::list<int>> rightSeq;
+    
+    if (node.left != nullptr) {
+        leftSeq = Sequences(*node.left); 
+    }
+
+    if (node.right != nullptr) {
+        rightSeq = Sequences(*node.right); 
+    }   
+
+    auto value = node.value; 
+
+    if (!leftSeq.empty()) {
+
+        for(auto& llst : leftSeq) {
+            if (!rightSeq.empty()) {
+                for(auto& rlst : rightSeq) {
+                    std::list<int> lst;
+
+                    lst.push_back(value); 
+                    
+                    auto func = [&lst] (int n) {lst.push_back(n); }; 
+
+                    std::for_each(llst.begin(), llst.end(), func);
+                    std::for_each(rlst.begin(), rlst.end(), func); 
+
+                    resultList.push_back(lst); 
+                }
+            }
+        }
+    }
+
+    if (!rightSeq.empty()) {
+
+        
+        for(auto& rlst : rightSeq) {
+            if (!leftSeq.empty()) {
+                for(auto& llst : leftSeq) {
+                    std::list<int> lst;
+
+                    lst.push_back(value); 
+                    
+                    auto func = [&lst] (int n) {lst.push_back(n); }; 
+
+                    std::for_each(rlst.begin(), rlst.end(), func); 
+                    std::for_each(llst.begin(), llst.end(), func);
+
+                    resultList.push_back(lst); 
+                }
+            }
+        }
+    }
+
+    return resultList;     
+}
+
+std::list<std::list<int>> Sequences(const BinaryNode& node) {
+
+    std::list<std::list<int>> result;
+    std::unordered_set<const BinaryNode*, std::list<std::list<int>>> sequences; 
+
+    std::vector<const BinaryNode*> stack; 
+
+    stack.push_back(&node); 
+
+    while(!stack.empty()) {
+
+        // get top of stack node
+
+        // check if sequences contains left 
+
+        // cjhec
+
+    }
+}
+
 /*
 
 ------ EXAMPLE 1 ------ 
 
-Sequences(node 2, [[]])
-
-    make list [[2]]
-
-    IF LEFT NODE
-        call Sequences(node 2 left, [[2]])
-
-            return [[2, 1]]
-
-        then call with return 
-
-        call Sequences(node 2 right, [[2, 1]])
-
-            return [[2, 1, 3]]
-
-
-    IF RIGHT NODE
-
-        call Sequences(node 2 right, [[2]])
-            return [[2, 3]]
-
-        then call with return Sequences(node 2 left, [[2, 3]])
-
-            return [[2, 3, 1]]
-
-
-    
-    combine results
-
-    return [[2, 3, 1], [2, 1, 3]]
+return []
 
 ------ EXAMPLE 2 ------
 
         4 
   2          6
 1   3      5   7
+
+Answer: 
+LEFT NODE SEQ.
+{A, B} = {{2, 1, 3}, {2, 3, 1}}
+
+    PARENT SEQ:
+        {{2}}
+
+    LEFT SEQ:
+        {{1}}
+
+    RIGHT SEQ:
+        {{3}}
+
+    result list
+    for each list in parent list:
+        
+        for each llst in left seq:
+            
+            for each rlst in right seq:
+                result_list push back ( list + llist + rlist ) 
+
+RIGHT NODE SEQ. 
+{C, D} = {{6, 5, 7}, {6, 7, 5}}
+    
+now we need to generate all combinations of these where we pick one from each set
+
+AC, AD, BC, BD, CA, CB, DA, DB
+
+{4, 2, 1, 3, 6, 5, 7}, 
+{4, 2, 1, 3, 6, 7, 5},
+{4, 2, 3, 1, 6, 5, 7},
+{4, 2, 3, 1, 6, 7, 5}, 
+{4, 6, 5, 7, 2, 1, 3},
+{4, 6, 5, 7, 2, 3, 1},
+{4, 6, 7, 5, 2, 1, 3},
+{4, 6, 7, 5, 2, 3, 1}
 
 return [[current node, left node permutations, right node permutations], [current node, right node permutations, left node permutations]]
 
@@ -1036,116 +1135,62 @@ return [[current node, left node permutations, right node permutations], [curren
         ]
 */
 
-std::list<std::list<int>> Sequences(const BinaryNode& node, std::list<std::list<int>> sequences) {
+// std::list<std::list<int>> Sequences(const BinaryNode& node) {
     
-    if (sequences.empty()) {
-        std::list<int> lst; 
-        lst.push_back(node.value); 
-        sequences.push_back(lst); 
-    } else {
-        for(auto& lst : sequences) {
-            lst.push_back(node.value); 
-        }
-    }
+//     std::list<std::list<int>> emptyList; 
+//     return Sequences(node, emptyList); 
+// }
 
-    // // DEBUG
-    // for(auto& lst : sequences) {
-    //     std::for_each(lst.begin(), lst.end(), [] (int a) {std::cout << a << " "; }); 
-    //     std::cout << "\n"; 
-    // }
+/*
 
-    std::list<std::list<int>> leftNodeSequences;
-    std::list<std::list<int>> rightNodeSequences; 
+------ EXAMPLE 2 ------
 
-    if (node.left != nullptr) {
-        leftNodeSequences = Sequences(*node.left, sequences);
+        4 
+  2          6
+1   3      5   7
 
-        // DEBUG
-        for(auto& lst : leftNodeSequences) {
-            std::for_each(lst.begin(), lst.end(), [] (int a) {std::cout << a << " "; }); 
-            std::cout << "\n"; 
-        }
-    } 
 
-    if (node.right != nullptr) {
-        rightNodeSequences = Sequences(*node.right, sequences);
-
-        // DEBUG
-        for(auto& lst : rightNodeSequences) {
-            std::for_each(lst.begin(), lst.end(), [] (int a) {std::cout << a << " "; }); 
-            std::cout << "\n"; 
-        }
-    }
-    
-    // std::cout << leftNodeSequences.size() << " " << rightNodeSequences.size() << "\n";
-
-    std::list<std::list<int>> result;
-
-    for (auto& seq : sequences) {
-        
-        if (leftNodeSequences.empty()) {
-            std::list<int> lst
-            // lst.push_back(); 
-        } else {
-            for (auto& leftSeq : leftNodeSequences) {
-                
-                for(auto& rightSeq : rightNodeSequences) {
-                    std::list<int> lst;
-                    auto func = [&lst](int a) { lst.push_back(a); }; 
-
-                    std::for_each(seq.begin(), seq.end(), func); 
-                    std::for_each(leftSeq.begin(), leftSeq.end(), func); 
-                    std::for_each(rightSeq.begin(), rightSeq.end(), func); 
-                    
-                    result.push_back(lst); 
-                }    
-            }
-        }
-        
-
-    
-        for (auto& leftSeq : leftNodeSequences) {
-            for(auto& rightSeq : rightNodeSequences) {
-                std::list<int> lst;
-                
-                auto func = [&lst](int a) { lst.push_back(a); }; 
-
-                std::for_each(seq.begin(), seq.end(), func); 
-                std::for_each(leftSeq.begin(), leftSeq.end(), func); 
-                std::for_each(rightSeq.begin(), rightSeq.end(), func); 
-                
-                result.push_back(lst); 
-            }
-        }
-    }
-
-    return result; 
-}
-
-std::list<std::list<int>> Sequences(const BinaryNode& node) {
-    
-    std::list<std::list<int>> emptyList; 
-    return Sequences(node, emptyList); 
-}
+*/
 
 void BSTSequences() {
     BinaryNode node1;
     BinaryNode node2;
     BinaryNode node3;
+    BinaryNode node4;
+    BinaryNode node5;
+    BinaryNode node6;
+    BinaryNode node7; 
 
     node1.value = 1;
     node2.value = 2;
     node3.value = 3; 
+    node4.value = 4;
+    node5.value = 5;  
+    node6.value = 6; 
+    node7.value = 7; 
+
+    node4.left = &node2; 
+    node4.right = &node6; 
+    
+    node6.left = &node5; 
+    node6.right = &node7;
+
+    node5.left = nullptr;
+    node5.right = nullptr;
+
+    node7.left = nullptr;
+    node7.right = nullptr;        
 
     node2.left = &node1;
     node2.right = &node3;
 
     node1.left = nullptr;
     node1.right = nullptr;
+    
     node3.left = nullptr;
     node3.right = nullptr; 
 
-    auto result = Sequences(node2); 
+    auto result = Sequences(node4); 
 
     for(auto& list : result) {
         for(auto& l : list) {
